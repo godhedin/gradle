@@ -67,8 +67,8 @@ class JavaPartialAssembleDaemonPerformanceTest extends AbstractCrossVersionPerfo
 
         where:
         testProject             | maxMemory
-        "bigOldJavaMoreSource"  | '512m'
-        "bigOldJava"            | '512m'
-        "mediumOldJava"         | '256m'
+        "bigOldJavaMoreSource"  | '1g'
+        "bigOldJava"            | '1g'
+        "mediumOldJava"         | '128m'
     }
 }

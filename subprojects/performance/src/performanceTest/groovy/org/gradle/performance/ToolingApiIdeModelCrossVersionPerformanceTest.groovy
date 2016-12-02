@@ -16,7 +16,6 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.categories.Experiment
 import org.gradle.performance.categories.ToolingApiPerformanceTest
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -24,7 +23,7 @@ import org.gradle.tooling.model.idea.IdeaProject
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-@Category([ToolingApiPerformanceTest, Experiment])
+@Category(ToolingApiPerformanceTest)
 class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCrossVersionPerformanceTest {
 
     @Unroll
@@ -84,8 +83,8 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         where:
         template            | maxMemory
         "smallOldJava"      | '128m'
-        "mediumOldJava"     | '256m'
-        "bigOldJava"        | '512m'
+        "mediumOldJava"     | '128m'
+        "bigOldJava"        | '1g'
         "lotDependencies"   | '256m'
     }
 
@@ -143,8 +142,8 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         where:
         template            | maxMemory
         "smallOldJava"      | '128m'
-        "mediumOldJava"     | '256m'
-        "bigOldJava"        | '512m'
+        "mediumOldJava"     | '128m'
+        "bigOldJava"        | '1g'
         "lotDependencies"   | '256m'
     }
 

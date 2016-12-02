@@ -74,8 +74,8 @@ class JavaFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerforma
         where:
         testProject            | maxMemory
         "bigOldJavaMoreSource" | '1g'
-        "bigOldJava"           | '512m'
-        "mediumOldJava"        | '256m'
+        "bigOldJava"           | '1g'
+        "mediumOldJava"        | '128m'
         "smallOldJava"         | '128m'
     }
 }
