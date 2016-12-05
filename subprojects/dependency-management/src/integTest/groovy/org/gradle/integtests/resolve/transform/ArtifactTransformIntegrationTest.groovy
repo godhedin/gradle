@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.transform
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
 class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -337,6 +338,82 @@ class FileSizer extends ArtifactTransform {
 
         expect:
         succeeds "checkFiles"
+    }
+
+    @NotYetImplemented // At this stage, any artifact that is an input to an `ArtifactTransform` is built.
+    def "excluded project artifacts are not built"() {
+        given:
+        buildFile << """
+            project(':lib') {
+                task jar1(type: Jar) {
+                    destinationDir = buildDir
+                    archiveName = 'to-keep.jar'
+                }
+                task jar2(type: Jar) {
+                    destinationDir = buildDir
+                    archiveName = 'to-exclude.jar'
+                }
+
+                artifacts {
+                    compile jar1, jar2
+                }
+            }
+
+            project(':app') {
+
+                dependencies {
+                    compile project(':lib')
+                }
+
+                ${registerTransform('ArtifactFilter')}
+
+                def filteredView = configurations.compile.incoming.getFiles(viewType: 'filtered', artifactType: 'foo')
+                def unfilteredView = configurations.compile.incoming.getFiles(viewType: 'unfiltered', artifactType: 'foo')
+    
+                task checkFiltered {
+                    dependsOn filteredView
+                    doLast {
+                        assert filteredView.collect { it.name } == ['to-keep.jar']
+                    }
+                }
+    
+                task checkUnfiltered {
+                    dependsOn unfilteredView
+                    doLast {
+                        assert unfilteredView.collect {it.name} == ['to-keep.jar', 'to-exclude.jar']
+                    }
+                }
+            }
+            class ArtifactFilter extends ArtifactTransform {
+                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
+                    targets.newTarget().attribute(Attribute.of('viewType', String), "filtered")
+                    targets.newTarget().attribute(Attribute.of('viewType', String), "unfiltered")
+                }
+            
+                List<File> transform(File input, AttributeContainer target) {
+                    if (target.getAttribute(Attribute.of('viewType', String)) == "unfiltered") {
+                        return [input]
+                    }
+                    if (input.name.startsWith('to-keep')) {
+                        return [input]
+                    }
+                    return []
+                }
+            }
+        """
+
+        when:
+        succeeds "checkFiltered"
+
+        then:
+        executed "jar1"
+        notExecuted "jar2"
+
+        when:
+        succeeds "checkUnfiltered"
+
+        then:
+        executed "jar1", "jar2"
     }
 
     def "transform can produce multiple outputs with different attributes for a single input"() {
