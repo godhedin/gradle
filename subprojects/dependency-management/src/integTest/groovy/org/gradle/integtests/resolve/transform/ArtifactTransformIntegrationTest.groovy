@@ -349,30 +349,32 @@ class FileSizer extends ArtifactTransform {
         given:
         buildFile << """
             project(':lib') {
-                task jar1(type: Jar) {
+                task jarKeep(type: Jar) {
                     destinationDir = buildDir
                     archiveName = 'to-keep.jar'
                 }
-                task jar2(type: Jar) {
+                task jarExclude(type: Jar) {
                     destinationDir = buildDir
                     archiveName = 'to-exclude.jar'
                 }
 
                 artifacts {
-                    compile jar1, jar2
+                    compile jarKeep, jarExclude
                 }
             }
 
             project(':app') {
-
+                configurationAttributesSchema {
+                    attribute(Attribute.of('viewType', String))
+                }
                 dependencies {
                     compile project(':lib')
                 }
 
                 ${registerTransform('ArtifactFilter')}
 
-                def filteredView = configurations.compile.incoming.getFiles(viewType: 'filtered', artifactType: 'foo')
-                def unfilteredView = configurations.compile.incoming.getFiles(viewType: 'unfiltered', artifactType: 'foo')
+                def filteredView = configurations.compile.incoming.getFiles(viewType: 'filtered')
+                def unfilteredView = configurations.compile.incoming.getFiles(viewType: 'unfiltered')
     
                 task checkFiltered {
                     dependsOn filteredView
@@ -407,17 +409,17 @@ class FileSizer extends ArtifactTransform {
         """
 
         when:
-        succeeds "checkFiltered"
-
-        then:
-        executed "jar1"
-        notExecuted "jar2"
-
-        when:
         succeeds "checkUnfiltered"
 
         then:
-        executed "jar1", "jar2"
+        executed ":lib:jarKeep", ":lib:jarExclude"
+
+        when:
+        succeeds "checkFiltered"
+
+        then:
+        executed ":lib:jarKeep"
+        notExecuted ":lib:jarExclude"
     }
 
     def "transform can produce multiple outputs with different attributes for a single input"() {
