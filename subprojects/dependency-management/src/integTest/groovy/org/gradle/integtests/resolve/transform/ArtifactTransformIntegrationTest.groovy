@@ -287,6 +287,58 @@ class FileSizer extends ArtifactTransform {
         file("build/libs").assertIsEmptyDir()
     }
 
+    @NotYetImplemented // Cannot use custom attribute in `ArtifactTransform`
+    def "can use transform to selectively include artifacts based on arbitrary criteria"() {
+        mavenRepo.module("test", "to-keep", "1.3").publish()
+        mavenRepo.module("test", "to-exclude", "2.3").publish()
+
+        given:
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                selection
+            }
+            dependencies {
+                selection 'test:to-keep:1.3'
+                selection 'test:to-exclude:2.3'
+            }
+            ${registerTransform('ArtifactFilter')}
+
+            def filteredView = configurations.selection.incoming.getFiles(viewType: 'filtered', artifactType: 'foo')
+            def unfilteredView = configurations.selection.incoming.getFiles(viewType: 'unfiltered', artifactType: 'foo')
+
+            task checkFiles {
+                doLast {
+                    assert configurations.selection.collect { it.name } == ['to-keep-1.3.jar', 'to-exclude-2.3.jar']
+                    assert filteredView.collect { it.name } == ['to-keep-1.3.jar']
+                    assert unfilteredView.collect {it.name} == ['to-keep-1.3.jar', 'to-exclude-2.3.jar']
+                }
+            }
+
+            class ArtifactFilter extends ArtifactTransform {
+                void configure(AttributeContainer from, ArtifactTransformTargets targets) {
+                    targets.newTarget().attribute(Attribute.of('viewType', String), "filtered")
+                    targets.newTarget().attribute(Attribute.of('viewType', String), "unfiltered")
+                }
+            
+                List<File> transform(File input, AttributeContainer target) {
+                    if (target.getAttribute(Attribute.of('viewType', String)) == "unfiltered") {
+                        return [input]
+                    }
+                    if (input.name.startsWith('to-keep')) {
+                        return [input]
+                    }
+                    return []
+                }
+            }
+"""
+
+        expect:
+        succeeds "checkFiles"
+    }
+
     def "transform can produce multiple outputs with different attributes for a single input"() {
         given:
         buildFile << """
