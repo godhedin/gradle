@@ -35,7 +35,8 @@ public class MemoryStatusBroadcaster {
     private final MemoryInfo memoryInfo;
     private final boolean osMemoryStatusSupported;
 
-    public MemoryStatusBroadcaster(MemoryInfo memoryInfo, ScheduledExecutorService scheduledExecutorService, ListenerManager listenerManager) {
+    public MemoryStatusBroadcaster(MemoryInfo memoryInfo, ScheduledExecutorService scheduledExecutorService, ListenerManager listenerManager,
+                                   MemoryResourceManager manager /* Unused parameter required to eagerly instantiate it alongside this service */) {
         this.memoryInfo = memoryInfo;
         this.scheduledExecutorService = scheduledExecutorService;
         this.jvmBroadcast = listenerManager.createAnonymousBroadcaster(JvmMemoryStatusListener.class);

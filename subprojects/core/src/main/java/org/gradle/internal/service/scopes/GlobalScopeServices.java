@@ -407,11 +407,11 @@ public class GlobalScopeServices {
         return new MemoryInfo(execHandleFactory);
     }
 
-    MemoryStatusBroadcaster createMemoryStatusBroadcaster(MemoryInfo memoryInfo, ScheduledExecutorService scheduledExecutorService, ListenerManager listenerManager) {
-        return new MemoryStatusBroadcaster(memoryInfo, scheduledExecutorService, listenerManager);
+    MemoryStatusBroadcaster createMemoryStatusBroadcaster(MemoryInfo memoryInfo, ScheduledExecutorService scheduledExecutorService, ListenerManager listenerManager, MemoryResourceManager memoryManager) {
+        return new MemoryStatusBroadcaster(memoryInfo, scheduledExecutorService, listenerManager, memoryManager);
     }
 
     MemoryResourceManager createMemoryResourceManager(ListenerManager listenerManager) {
-        return new DefaultMemoryResourceManager(listenerManager);
+        return new DefaultMemoryResourceManager(listenerManager, 0.05);
     }
 }

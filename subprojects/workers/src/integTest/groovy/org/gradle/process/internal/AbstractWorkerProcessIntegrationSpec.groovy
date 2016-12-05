@@ -39,6 +39,7 @@ import org.gradle.internal.remote.MessagingServer
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.GlobalScopeServices
+import org.gradle.process.internal.health.memory.MemoryResourceManager
 import org.gradle.process.internal.worker.DefaultWorkerProcessFactory
 import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -64,7 +65,7 @@ abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
     final ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get())
     final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry), new WorkerProcessClassPathProvider(cacheRepository))
     final ExecHandleFactory execHandleFactory = TestFiles.javaExecHandleFactory(tmpDir.testDirectory)
-    final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.LIFECYCLE, server, classPathRegistry, new LongIdGenerator(), null, new TmpDirTemporaryFileProvider(), execHandleFactory, new CachingJvmVersionDetector(new DefaultJvmVersionDetector(execHandleFactory)))
+    final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.LIFECYCLE, server, classPathRegistry, new LongIdGenerator(), null, new TmpDirTemporaryFileProvider(), execHandleFactory, new CachingJvmVersionDetector(new DefaultJvmVersionDetector(execHandleFactory)), Stub(MemoryResourceManager))
 
     def cleanup() {
         services.close()
