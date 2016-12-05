@@ -252,10 +252,8 @@ class FileSizer extends ArtifactTransform {
     }
 
     def "transform can generate an empty output"() {
-        def m1 = mavenRepo.module("test", "test", "1.3").publish()
-        m1.artifactFile.text = "1234"
-        def m2 = mavenRepo.module("test", "test2", "2.3").publish()
-        m2.artifactFile.text = "12"
+        mavenRepo.module("test", "test", "1.3").publish()
+        mavenRepo.module("test", "test2", "2.3").publish()
 
         given:
         buildFile << """
@@ -716,23 +714,28 @@ class FileSizer extends ArtifactTransform {
     }
 
     def configurationAndTransform(String transformImplementation) {
-        """
-            configurations {
+        """configurations {
                 compile {
                     attributes artifactType: 'size'
                 }
             }
-            configurations.all {
-                resolutionStrategy.registerTransform($transformImplementation) {
-                    outputDirectory = project.file("\${buildDir}/transformed")
-                }
-            }
+            ${registerTransform(transformImplementation)}
 
             task resolve(type: Copy) {
                 from configurations.compile
                 into "\${buildDir}/libs"
             }
 """
+    }
+
+    def registerTransform(String implementation) {
+        """configurations.all {
+                resolutionStrategy.registerTransform($implementation) {
+                    outputDirectory = project.file("\${buildDir}/transformed")
+                }
+            }
+"""
+
     }
 
     def fileSizeConfigurationAndTransform() {
